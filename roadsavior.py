@@ -229,3 +229,44 @@ def plot_history(history):
     plt.show()
 
 plot_history(history)
+
+import random
+
+# Function to predict the mask
+def predict_mask(model, image):
+    image = cv2.resize(image, (256, 256))
+    image = image / 255.0
+    image = np.expand_dims(image, axis=0)
+    mask = model.predict(image)
+    mask = np.squeeze(mask)
+    mask = cv2.resize(mask, (256, 256))
+    return mask
+
+# Function to visualize the results
+def visualize_results(image_paths, mask_paths, model, num_samples=5):
+    fig, ax = plt.subplots(num_samples, 3, figsize=(15, 15))
+
+    for i in range(num_samples):
+        idx = random.randint(0, len(image_paths) - 1)
+        image, gt_mask = read_image_and_mask(image_paths[idx], mask_paths[idx])
+        gt_mask = binarize_mask(gt_mask)
+        pred_mask = predict_mask(model, image)
+        pred_mask = binarize_mask(pred_mask * 255)
+
+        ax[i, 0].imshow(image)
+        ax[i, 0].set_title("Aerial Image")
+        ax[i, 0].axis("off")
+
+        ax[i, 1].imshow(gt_mask, cmap="gray")
+        ax[i, 1].set_title("Ground Truth Road Mask")
+        ax[i, 1].axis("off")
+
+        ax[i, 2].imshow(pred_mask, cmap="gray")
+        ax[i, 2].set_title("Predicted Road Mask")
+        ax[i, 2].axis("off")
+
+    plt.tight_layout()
+    plt.show()
+
+# Visualize the results
+visualize_results(val_image_paths, val_mask_paths, model)
